@@ -15,21 +15,63 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import composables.PhotoList
-import io.kamel.core.config.KamelConfig
-import io.kamel.core.config.takeFrom
-import io.kamel.image.config.Default
-import io.kamel.image.config.resourcesFetcher
+import kotlinx.coroutines.launch
 import model.Photo
 import services.PhotosApi
 
 @Composable
 fun App() {
+    var photos by remember { mutableStateOf(listOf<Photo>()) }
+    var loading by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
+
+    MaterialTheme {
+        Scaffold (
+            topBar = {
+                TopAppBar (
+                    title = { Text("Photos Demo App") },
+                    actions = {
+                        IconButton(onClick = {
+                            loading = true
+                            scope.launch {
+                                photos = PhotosApi.getPhotos()
+                                loading = false
+                            }
+                        }, enabled = !loading) {
+                            Icon(Icons.Filled.Refresh, contentDescription = "Load photos")
+                        }
+                    }
+                )
+            }
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (loading) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                } else {
+                    PhotoList(photos,
+                        onClick = {
+                            println("Click photo ${it.id}")
+                        },
+                        onDelete = { photoToDelete ->
+                            photos = photos.filter { it != photoToDelete }
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AppWithEffect() {
     var photos by remember { mutableStateOf(listOf<Photo>()) }
     var loading by remember { mutableStateOf(false) }
 
@@ -46,7 +88,9 @@ fun App() {
                 TopAppBar (
                     title = { Text("Photos Demo App") },
                     actions = {
-                        IconButton(onClick = { loading = true }) {
+                        IconButton(onClick = {
+                            loading = true
+                        }, enabled = !loading) {
                             Icon(Icons.Filled.Refresh, contentDescription = "Load photos")
                         }
                     }
@@ -57,7 +101,14 @@ fun App() {
                 if (loading) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 } else {
-                    PhotoList(photos)
+                    PhotoList(photos,
+                        onClick = {
+                            println("Click photo ${it.id}")
+                        },
+                        onDelete = { photoToDelete ->
+                            photos = photos.filter { it != photoToDelete }
+                        }
+                    )
                 }
             }
         }
