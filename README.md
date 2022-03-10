@@ -11,3 +11,4 @@ https://proandroiddev.com/jetpack-compose-side-effects-ii-remembercoroutinescope
 
 https://stackoverflow.com/questions/66474049/using-remembercoroutinescope-vs-launchedeffect
 
+.
